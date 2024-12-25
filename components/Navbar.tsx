@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 
 interface NavbarProps {
@@ -10,6 +11,9 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ isDarkMode }) => {
   const [isdark, setIsdark] = useState(isDarkMode);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     // Only set data-theme on the client-side
@@ -26,11 +30,32 @@ const Navbar: React.FC<NavbarProps> = ({ isDarkMode }) => {
     Cookies.set("isdark", String(isdark));
   }, [isdark]);
 
+  useEffect(() => {
+    // Close dropdown on route change
+    setIsDropdownOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <div className="navbar bg-base-100">
       <div className="navbar-start">
-        <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
+        <div className="dropdown" ref={dropdownRef}>
+          <div 
+            tabIndex={0} 
+            role="button" 
+            className="btn btn-ghost lg:hidden"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
@@ -48,7 +73,9 @@ const Navbar: React.FC<NavbarProps> = ({ isDarkMode }) => {
           </div>
           <ul
             tabIndex={0}
-            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+            className={`menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow ${
+              isDropdownOpen ? '' : 'hidden'
+            }`}
           >
             <li>
               <Link href="/">Home</Link>
