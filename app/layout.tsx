@@ -24,13 +24,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const initialTheme = await getInitialTheme();
+  const isDarkMode = initialTheme === "dark";
 
   return (
     <html lang="en" data-theme={initialTheme}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar />
+        <Navbar isDarkMode={isDarkMode} />
         {children}
       </body>
     </html>

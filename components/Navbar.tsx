@@ -4,30 +4,26 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Cookies from "js-cookie";
 
-const Navbar: React.FC = () => {
-  const [isdark, setIsdark] = useState(false);
+interface NavbarProps {
+  isDarkMode: boolean;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ isDarkMode }) => {
+  const [isdark, setIsdark] = useState(isDarkMode);
 
   useEffect(() => {
-    const storedTheme = Cookies.get("isdark");
-    if (storedTheme !== undefined) {
-      setIsdark(storedTheme === "true");
-      // set data-theme to match the isdark value.
-      if (storedTheme === "true") {
+    // Only set data-theme on the client-side
+    if (typeof window !== "undefined") {
+      if (isdark) {
         document.documentElement.setAttribute("data-theme", "dark");
       } else {
         document.documentElement.setAttribute("data-theme", "light");
       }
     }
-  }, []);
+  }, [isdark]);
 
   useEffect(() => {
     Cookies.set("isdark", String(isdark));
-    // update data-theme attribute on the HTML tag to prevent flickering on theme change
-    if (isdark) {
-      document.documentElement.setAttribute("data-theme", "dark");
-    } else {
-      document.documentElement.setAttribute("data-theme", "light");
-    }
   }, [isdark]);
 
   return (
@@ -81,7 +77,7 @@ const Navbar: React.FC = () => {
         </ul>
       </div>
       <div className="navbar-end">
-        <label className={`swap swap-rotate ${isdark ? "swap-active" : ""}`}>
+        <label className="swap swap-rotate">
           {/* this hidden checkbox controls the state */}
           <input
             type="checkbox"
