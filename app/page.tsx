@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 
+export const runtime = "edge";
+
 const GalleryPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [modalDimensions, setModalDimensions] = useState({
