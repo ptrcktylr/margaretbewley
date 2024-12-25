@@ -37,22 +37,34 @@ const Navbar: React.FC<NavbarProps> = ({ isDarkMode }) => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleLinkClick = (
+    path: string,
+    e: React.MouseEvent<HTMLAnchorElement>
+  ) => {
+    setIsDropdownOpen(false);
+    // Always blur the clicked element, regardless of path
+    (e.target as HTMLElement).blur();
+  };
 
   return (
     <div className="navbar bg-base-100">
       <div className="navbar-start">
         <div className="dropdown" ref={dropdownRef}>
-          <div 
-            tabIndex={0} 
-            role="button" 
+          <div
+            tabIndex={0}
+            role="button"
             className="btn btn-ghost lg:hidden"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
@@ -74,32 +86,56 @@ const Navbar: React.FC<NavbarProps> = ({ isDarkMode }) => {
           <ul
             tabIndex={0}
             className={`menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow ${
-              isDropdownOpen ? '' : 'hidden'
+              isDropdownOpen ? "" : "hidden"
             }`}
           >
             <li>
-              <Link href="/">Home</Link>
+              <Link href="/" onClick={(e) => handleLinkClick("/", e)}>
+                Home
+              </Link>
             </li>
             <li>
-              <Link href="/about">About</Link>
+              <Link href="/about" onClick={(e) => handleLinkClick("/about", e)}>
+                About
+              </Link>
             </li>
             <li>
-              <Link href="/contact">Contact</Link>
+              <Link
+                href="/contact"
+                onClick={(e) => handleLinkClick("/contact", e)}
+              >
+                Contact
+              </Link>
             </li>
           </ul>
         </div>
-        <a className="btn btn-ghost text-xl">margaret bewley</a>
+        <Link
+          href="/"
+          onClick={(e) => handleLinkClick("/", e)}
+          className="btn btn-ghost text-xl"
+        >
+          margaret bewley
+        </Link>
       </div>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1">
           <li>
-            <Link href="/">Home</Link>
+            <Link href="/" onClick={(e) => handleLinkClick("/", e)}>
+              Home
+            </Link>
           </li>
           <li>
-            <Link href="/about">About</Link>
+            <Link href="/about" onClick={(e) => handleLinkClick("/about", e)}>
+              About
+            </Link>
           </li>
           <li>
-            <Link href="/contact">Contact</Link>
+            <Link
+              href="/contact"
+              onClick={(e) => handleLinkClick("/contact", e)}
+            >
+              Contact
+            </Link>
           </li>
         </ul>
       </div>
