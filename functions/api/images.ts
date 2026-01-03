@@ -15,7 +15,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     }));
 
     return new Response(JSON.stringify(images), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
     });
   } catch (error) {
     console.error('List error:', error);

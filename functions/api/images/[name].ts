@@ -17,6 +17,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     object.writeHttpMetadata(headers);
     headers.set('etag', object.httpEtag);
     headers.set('Cache-Control', 'public, max-age=31536000');
+    headers.set('Access-Control-Allow-Origin', '*');
 
     return new Response(object.body, { headers });
   } catch (error) {
@@ -32,7 +33,10 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
     await context.env.GALLERY_BUCKET.delete(name);
 
     return new Response(JSON.stringify({ success: true }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
     });
   } catch (error) {
     console.error('Delete error:', error);
