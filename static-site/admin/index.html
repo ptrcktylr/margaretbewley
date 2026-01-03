@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - margaret bewley</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- DaisyUI -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.22/dist/full.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Geist', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen bg-base-200 p-8">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-4xl font-bold">Gallery Admin</h1>
+        <a href="/" class="btn btn-ghost">← Back to Site</a>
+      </div>
+
+      <!-- Upload Section -->
+      <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+          <h2 class="card-title">Upload New Images</h2>
+          <p class="text-sm opacity-70 mb-4">Select one or multiple images to upload to your gallery. Images will be automatically converted to WebP format.</p>
+
+          <div class="form-control">
+            <input
+              type="file"
+              id="fileInput"
+              accept="image/*"
+              multiple
+              class="file-input file-input-bordered w-full"
+            />
+          </div>
+
+          <div class="card-actions justify-end mt-4">
+            <button id="uploadBtn" class="btn btn-primary" onclick="uploadImages()">
+              <span id="uploadText">Upload Images</span>
+              <span id="uploadSpinner" class="loading loading-spinner loading-sm hidden"></span>
+            </button>
+          </div>
+
+          <!-- Progress/Status -->
+          <div id="uploadStatus" class="mt-4 hidden">
+            <div class="alert" id="statusAlert">
+              <span id="statusMessage"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Images Section -->
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">Current Images</h2>
+          <p class="text-sm opacity-70 mb-4">Click on an image to delete it from your gallery.</p>
+
+          <div id="imageGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center col-span-full py-8">
+              <span class="loading loading-spinner loading-lg"></span>
+              <p class="mt-2">Loading images...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Load existing images
+    async function loadImages() {
+      try {
+        const response = await fetch('/api/images');
+        const images = await response.json();
+
+        const grid = document.getElementById('imageGrid');
+        grid.innerHTML = '';
+
+        if (images.length === 0) {
+          grid.innerHTML = '<div class="col-span-full text-center py-8 opacity-50">No images yet. Upload some to get started!</div>';
+          return;
+        }
+
+        images.forEach(img => {
+          const div = document.createElement('div');
+          div.className = 'relative group cursor-pointer';
+          div.innerHTML = `
+            <img src="${img.url}" alt="${img.name}" class="w-full h-32 object-cover rounded-lg">
+            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+              <button onclick="deleteImage('${img.name}')" class="btn btn-error btn-sm">Delete</button>
+            </div>
+            <p class="text-xs mt-1 truncate">${img.name}</p>
+          `;
+          grid.appendChild(div);
+        });
+      } catch (error) {
+        console.error('Error loading images:', error);
+        document.getElementById('imageGrid').innerHTML = '<div class="col-span-full text-center py-8 text-error">Error loading images</div>';
+      }
+    }
+
+    // Upload images
+    async function uploadImages() {
+      const fileInput = document.getElementById('fileInput');
+      const files = fileInput.files;
+
+      if (files.length === 0) {
+        showStatus('Please select at least one image', 'error');
+        return;
+      }
+
+      const uploadBtn = document.getElementById('uploadBtn');
+      const uploadText = document.getElementById('uploadText');
+      const uploadSpinner = document.getElementById('uploadSpinner');
+
+      uploadBtn.disabled = true;
+      uploadText.classList.add('hidden');
+      uploadSpinner.classList.remove('hidden');
+
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const formData = new FormData();
+          formData.append('image', files[i]);
+
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) {
+            throw new Error(`Upload failed for ${files[i].name}`);
+          }
+        }
+
+        showStatus(`Successfully uploaded ${files.length} image(s)!`, 'success');
+        fileInput.value = '';
+        loadImages();
+      } catch (error) {
+        console.error('Upload error:', error);
+        showStatus('Upload failed: ' + error.message, 'error');
+      } finally {
+        uploadBtn.disabled = false;
+        uploadText.classList.remove('hidden');
+        uploadSpinner.classList.add('hidden');
+      }
+    }
+
+    // Delete image
+    async function deleteImage(name) {
+      if (!confirm(`Delete ${name}?`)) return;
+
+      try {
+        const response = await fetch(`/api/images/${encodeURIComponent(name)}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Delete failed');
+
+        showStatus('Image deleted successfully', 'success');
+        loadImages();
+      } catch (error) {
+        console.error('Delete error:', error);
+        showStatus('Failed to delete image', 'error');
+      }
+    }
+
+    // Show status message
+    function showStatus(message, type) {
+      const status = document.getElementById('uploadStatus');
+      const alert = document.getElementById('statusAlert');
+      const msg = document.getElementById('statusMessage');
+
+      alert.className = `alert alert-${type}`;
+      msg.textContent = message;
+      status.classList.remove('hidden');
+
+      setTimeout(() => {
+        status.classList.add('hidden');
+      }, 5000);
+    }
+
+    // Load images on page load
+    loadImages();
+  </script>
+</body>
+</html>

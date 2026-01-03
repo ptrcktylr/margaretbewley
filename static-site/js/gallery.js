@@ -6,8 +6,68 @@ class Gallery {
     this.modal = document.getElementById('gallery-modal');
     this.modalImage = document.getElementById('modal-image');
     this.modalDimensions = { width: 0, height: 0 };
+    this.galleryGrid = document.getElementById('gallery-grid');
 
     this.init();
+  }
+
+  async loadImages() {
+    try {
+      // Try to load from API first (R2 images)
+      const response = await fetch('/api/images');
+
+      if (response.ok) {
+        const images = await response.json();
+        this.renderImages(images.map(img => img.url));
+      } else {
+        // Fallback to static images
+        this.loadStaticImages();
+      }
+    } catch (error) {
+      console.log('API not available, using static images');
+      this.loadStaticImages();
+    }
+  }
+
+  loadStaticImages() {
+    // Fallback to original static images
+    const staticImages = Array.from({ length: 16 }, (_, i) => `images/gallery/${i}.webp`);
+    this.renderImages(staticImages);
+  }
+
+  renderImages(imageUrls) {
+    this.galleryGrid.innerHTML = '';
+
+    if (imageUrls.length === 0) {
+      this.galleryGrid.innerHTML = '<div class="col-span-full text-center py-12 opacity-50">No images in gallery yet.</div>';
+      return;
+    }
+
+    imageUrls.forEach((url, index) => {
+      const div = document.createElement('div');
+      div.className = 'mb-4 break-inside-avoid';
+
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = `Gallery Image ${index}`;
+      img.className = 'w-full h-auto cursor-pointer gallery-image';
+      img.loading = 'lazy';
+
+      div.appendChild(img);
+      this.galleryGrid.appendChild(div);
+    });
+
+    // Re-attach click handlers
+    this.attachClickHandlers();
+  }
+
+  attachClickHandlers() {
+    const galleryImages = document.querySelectorAll('.gallery-image');
+    galleryImages.forEach(img => {
+      img.addEventListener('click', () => {
+        this.openModal(img.src);
+      });
+    });
   }
 
   calculateModalDimensions(imageSrc) {
@@ -76,13 +136,8 @@ class Gallery {
   }
 
   init() {
-    // Add click handlers to all gallery images
-    const galleryImages = document.querySelectorAll('.gallery-image');
-    galleryImages.forEach(img => {
-      img.addEventListener('click', () => {
-        this.openModal(img.src);
-      });
-    });
+    // Load images first
+    this.loadImages();
 
     // Close modal when clicking on the backdrop
     if (this.modal) {
