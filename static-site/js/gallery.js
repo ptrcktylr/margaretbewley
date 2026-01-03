@@ -13,26 +13,18 @@ class Gallery {
 
   async loadImages() {
     try {
-      // Try to load from API first (R2 images)
       const response = await fetch('/api/images');
 
       if (response.ok) {
         const images = await response.json();
         this.renderImages(images.map(img => img.url));
       } else {
-        // Fallback to static images
-        this.loadStaticImages();
+        this.galleryGrid.innerHTML = '<div class="col-span-full text-center py-12 opacity-50">Error loading gallery.</div>';
       }
     } catch (error) {
-      console.log('API not available, using static images');
-      this.loadStaticImages();
+      console.error('Error loading images:', error);
+      this.galleryGrid.innerHTML = '<div class="col-span-full text-center py-12 opacity-50">Error loading gallery.</div>';
     }
-  }
-
-  loadStaticImages() {
-    // Fallback to original static images
-    const staticImages = Array.from({ length: 16 }, (_, i) => `images/gallery/${i}.webp`);
-    this.renderImages(staticImages);
   }
 
   renderImages(imageUrls) {
