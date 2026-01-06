@@ -27,6 +27,16 @@ class Gallery {
     }
   }
 
+  shuffleArray(array) {
+    // Fisher-Yates shuffle algorithm
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
   renderImages(imageUrls) {
     this.galleryGrid.innerHTML = '';
 
@@ -35,7 +45,10 @@ class Gallery {
       return;
     }
 
-    imageUrls.forEach((url, index) => {
+    // Randomize the order of images
+    const shuffledUrls = this.shuffleArray(imageUrls);
+
+    shuffledUrls.forEach((url, index) => {
       const div = document.createElement('div');
       div.className = 'mb-4 break-inside-avoid';
 
